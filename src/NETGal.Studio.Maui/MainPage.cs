@@ -154,7 +154,6 @@ public sealed class MainPage : ContentPage
             {
                 Text = $"{scene.Title}\n{scene.Id}",
                 HorizontalOptions = LayoutOptions.Fill,
-                HorizontalTextAlignment = TextAlignment.Start,
                 TextColor = scene.Id == _selectedSceneId ? Color.FromArgb("#F1D0B2") : Color.FromArgb("#8894A7"),
                 BackgroundColor = scene.Id == _selectedSceneId ? Color.FromArgb("#32271F") : Colors.Transparent,
                 BorderColor = scene.Id == _selectedSceneId ? Color.FromArgb("#E19B67") : Colors.Transparent,
