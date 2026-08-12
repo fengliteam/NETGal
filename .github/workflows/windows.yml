@@ -1,0 +1,81 @@
+name: Windows build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}\\.nuget\\packages
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: 'true'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install MAUI workload
+        shell: pwsh
+        run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+      - name: Restore core and native Windows projects
+        shell: pwsh
+        run: |
+          dotnet restore src/NETGal.Engine/NETGal.Engine.csproj
+          dotnet restore src/NETGal/NETGal.csproj
+          dotnet restore src/NETGal.Player/NETGal.Player.csproj
+          dotnet restore src/NETGal.Player.Windows/NETGal.Player.Windows.csproj -r win-x64
+          dotnet restore src/NETGal.Studio.Windows/NETGal.Studio.Windows.csproj -r win-x64
+          dotnet restore src/NETGal.Player.Maui/NETGal.Player.Maui.csproj -r win-x64 -p:NETGalSingleTarget=true -p:NETGalTargetFramework=net10.0-windows10.0.19041.0
+          dotnet restore src/NETGal.Studio.Maui/NETGal.Studio.Maui.csproj -r win-x64
+
+      - name: Build core and CLI
+        shell: pwsh
+        run: dotnet build src/NETGal/NETGal.csproj --no-restore -c Release --nologo
+
+      - name: Publish WPF native Windows tools
+        shell: pwsh
+        run: |
+          dotnet publish src/NETGal.Player.Windows/NETGal.Player.Windows.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/player-windows
+          dotnet publish src/NETGal.Studio.Windows/NETGal.Studio.Windows.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/studio-windows
+
+      - name: Publish MAUI native Windows player and studio
+        shell: pwsh
+        run: |
+          dotnet publish src/NETGal.Player.Maui/NETGal.Player.Maui.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:NETGalSingleTarget=true -p:NETGalTargetFramework=net10.0-windows10.0.19041.0 -p:WindowsPackageType=None -p:GameContentRoot=${{ github.workspace }}\\samples\\Starfall --self-contained true --no-restore -o artifacts/player-maui-windows
+          dotnet publish src/NETGal.Studio.Maui/NETGal.Studio.Maui.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:WindowsPackageType=None --self-contained true --no-restore -o artifacts/studio-maui-windows
+
+      - name: Smoke test native player
+        shell: pwsh
+        run: |
+          $player = Join-Path $PWD 'artifacts/player-windows/NETGal.Player.Windows.exe'
+          $project = Join-Path $PWD 'samples/Starfall'
+          $process = Start-Process -FilePath $player -ArgumentList "`"$project`"" -PassThru
+          Start-Sleep -Seconds 5
+          if ($process.HasExited) {
+            throw "NETGal.Player.Windows exited during smoke test with code $($process.ExitCode)."
+          }
+          Stop-Process -Id $process.Id -Force
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: netgal-windows-${{ github.sha }}
+          path: artifacts
+          if-no-files-found: error

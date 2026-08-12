@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" IgnorableNamespaces="uap mp">
+  <Identity Name="com.netgal.player" Publisher="CN=NETGal" Version="1.0.0.0" />
+  <Properties><DisplayName>NETGal Player</DisplayName><PublisherDisplayName>NETGal</PublisherDisplayName><Description>NETGal visual novel player</Description><Logo>$placeholder</Logo></Properties>
+  <Dependencies><TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22621.0" /></Dependencies>
+  <Resources><Resource Language="x-generate" /></Resources>
+  <Applications><Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="$targetentrypoint$"><uap:VisualElements AppListEntry="none" DisplayName="NETGal Player" /></Application></Applications>
+</Package>
+

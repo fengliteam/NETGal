@@ -1,0 +1,57 @@
+{
+  "id": "starfall",
+  "title": "Starfall · A Tiny Story",
+  "author": "NETGal Creator",
+  "version": "0.1.0",
+  "startScene": "intro",
+  "settings": {
+    "theme": "midnight",
+    "windowMode": "responsive",
+    "showSaveMenu": true
+  },
+  "scenes": [
+    {
+      "id": "intro",
+      "title": "Opening",
+      "background": "",
+      "speaker": "Narrator",
+      "text": "A new story is waiting to be written.",
+      "character": null,
+      "choices": [
+        { "id": "begin", "text": "Begin the story", "next": "morning" },
+        { "id": "close", "text": "Stay a little longer", "next": "quiet" }
+      ]
+    },
+    {
+      "id": "morning",
+      "title": "A New Morning",
+      "background": "",
+      "speaker": "Mika",
+      "text": "The first light reaches the window. What kind of day will this become?",
+      "character": null,
+      "choices": [
+        { "id": "walk", "text": "Go outside", "next": "ending" },
+        { "id": "write", "text": "Write the next scene", "next": "ending" }
+      ]
+    },
+    {
+      "id": "quiet",
+      "title": "A Quiet Moment",
+      "background": "",
+      "speaker": "Narrator",
+      "text": "Sometimes a story needs a breath before it moves forward.",
+      "character": null,
+      "choices": [ { "id": "return", "text": "Return to the beginning", "next": "intro" } ]
+    },
+    {
+      "id": "ending",
+      "title": "To Be Continued",
+      "background": "",
+      "speaker": "Narrator",
+      "text": "This is the end of the sample chapter. Add more scenes in the editor.",
+      "character": null,
+      "choices": [ { "id": "restart", "text": "Play again", "next": "intro" } ]
+    }
+  ]
+}
+

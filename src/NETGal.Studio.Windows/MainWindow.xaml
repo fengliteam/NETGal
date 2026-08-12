@@ -1,0 +1,18 @@
+<Window x:Class="NETGal.Studio.Windows.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="NETGal Studio" Width="1340" Height="820" MinWidth="1000" MinHeight="620" WindowStartupLocation="CenterScreen" Background="{StaticResource CanvasBrush}" UseLayoutRounding="True">
+  <Grid>
+    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+    <Border Grid.Row="0" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="18,12">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Left"><TextBlock x:Name="ProjectTitle" Text="NETGal Studio" Foreground="{StaticResource TextBrush}" FontSize="18" FontWeight="Bold" /><TextBlock x:Name="StatusLabel" Text="Open game.json to begin" Foreground="{StaticResource MutedBrush}" FontSize="11" /></StackPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button x:Name="OpenButton" Content="Open project" Click="OpenButton_Click" /><Button x:Name="SaveButton" Content="Save project" Click="SaveButton_Click" IsEnabled="False" /><Button Content="Add scene" Click="AddSceneButton_Click" /></StackPanel>
+      </DockPanel>
+    </Border>
+    <Grid Grid.Row="1" Margin="14">
+      <Grid.ColumnDefinitions><ColumnDefinition Width="240" /><ColumnDefinition Width="*" /><ColumnDefinition Width="330" /></Grid.ColumnDefinitions>
+      <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="8" Margin="0,0,12,0"><ScrollViewer VerticalScrollBarVisibility="Auto"><ListBox x:Name="SceneList" Background="Transparent" BorderThickness="0" Foreground="{StaticResource TextBrush}" SelectionChanged="SceneList_SelectionChanged" /></ScrollViewer></Border>
+      <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="20" Margin="0,0,12,0"><ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel x:Name="EditorPanel" /></ScrollViewer></Border>
+      <Border Grid.Column="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="16"><Grid><Image x:Name="PreviewBackground" Stretch="UniformToFill" Opacity="0.6" /><Border Background="#D90D141D" /><StackPanel VerticalAlignment="Bottom"><TextBlock x:Name="PreviewTitle" Foreground="{StaticResource MutedBrush}" FontSize="10" /><TextBlock x:Name="PreviewSpeaker" Foreground="{StaticResource AccentBrush}" FontSize="16" FontWeight="Bold" Margin="0,12,0,4" /><TextBlock x:Name="PreviewText" Foreground="{StaticResource TextBrush}" FontSize="15" TextWrapping="Wrap" /><StackPanel x:Name="PreviewChoices" Margin="0,16,0,0" /></StackPanel></Grid></Border>
+    </Grid>
+  </Grid>
+</Window>
+

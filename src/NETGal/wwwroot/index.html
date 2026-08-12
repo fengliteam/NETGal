@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NETGal Studio</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark">NG</div>
+    <div class="brand-copy"><strong>NETGal Studio</strong><span>visual novel engine</span></div>
+    <div class="topbar-spacer"></div>
+    <div id="save-state" class="save-state"><span class="status-dot"></span> Ready</div>
+    <button class="button button-ghost" id="validate-button">Validate</button>
+    <button class="button button-primary" id="save-button">Save project</button>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar panel-border">
+      <div class="side-heading"><div><span class="eyebrow">PROJECT</span><h1 id="project-title">Loading...</h1></div><button class="icon-button" id="add-scene-button" title="Add scene">+</button></div>
+      <div class="scene-list" id="scene-list"></div>
+      <div class="sidebar-footer"><span class="live-dot"></span><span id="scene-count">0 scenes</span><span class="footer-divider"></span><span>v0.1</span></div>
+    </aside>
+
+    <section class="editor-column">
+      <div class="workspace-tabs"><button class="tab active" data-tab="scene">Scene editor</button><button class="tab" data-tab="settings">Project settings</button><div class="tab-fill"></div><button class="preview-link" id="open-player-button"><span>▶</span> Play preview <span class="shortcut">Ctrl ↗</span></button></div>
+      <div class="editor-scroll">
+        <div class="scene-header"><div><div class="breadcrumb">SCENES <span>/</span> <span id="scene-breadcrumb">INTRO</span></div><h2 id="scene-heading">Opening</h2></div><div class="scene-actions"><button class="icon-button" id="duplicate-scene-button" title="Duplicate scene">⧉</button><button class="icon-button danger-hover" id="delete-scene-button" title="Delete scene">⌫</button></div></div>
+        <div id="scene-tab" class="tab-content active">
+          <div class="form-grid two-up">
+            <label class="field"><span>Scene ID</span><input id="scene-id-input" spellcheck="false"></label>
+            <label class="field"><span>Display title</span><input id="scene-title-input"></label>
+          </div>
+          <div class="section-label"><span>STAGE</span><span class="section-line"></span><span class="muted">Optional background image</span></div>
+          <div class="stage-card"><div class="stage-preview" id="stage-preview"><div class="stage-sky"></div><div class="stage-ground"></div><span class="stage-empty">No background selected</span></div><div class="stage-controls"><label class="field"><span>Background path</span><input id="background-input" placeholder="assets/your-background.jpg"></label><p class="hint">Put files in your project's <code>assets</code> folder. Leave empty for the default stage.</p></div></div>
+          <div class="section-label"><span>DIALOGUE</span><span class="section-line"></span></div>
+          <div class="dialogue-card"><div class="form-grid two-up"><label class="field"><span>Speaker name</span><input id="speaker-input"></label><label class="field"><span>Character tag <em>optional</em></span><input id="character-input" placeholder="e.g. smiling"></label></div><label class="field"><span>Dialogue</span><textarea id="text-input" rows="5" placeholder="What happens in this scene?"></textarea><span class="character-count" id="character-count">0 characters</span></label></div>
+          <div class="section-label choices-heading"><span>CHOICES</span><span class="section-line"></span><button class="mini-button" id="add-choice-button">+ Add choice</button></div>
+          <div id="choices-list" class="choices-list"></div>
+        </div>
+        <div id="settings-tab" class="tab-content">
+          <div class="settings-intro"><span class="settings-icon">◎</span><div><h3>Project settings</h3><p>These values are stored in <code>game.json</code> and travel with your exported game.</p></div></div>
+          <div class="form-grid two-up"><label class="field"><span>Game title</span><input id="game-title-input"></label><label class="field"><span>Author</span><input id="author-input"></label><label class="field"><span>Version</span><input id="version-input"></label><label class="field"><span>Start scene</span><select id="start-scene-input"></select></label></div>
+          <div class="settings-note"><strong>Simple by design.</strong><span>NETGal stores your story as readable JSON, so it works well with Git and hand edits too.</span></div>
+        </div>
+        <div id="issues-panel" class="issues-panel hidden"></div>
+      </div>
+    </section>
+    <aside class="preview-column">
+      <div class="preview-head"><div><span class="eyebrow">LIVE PREVIEW</span><h2>Story player</h2></div><span class="preview-indicator"><span class="live-dot"></span> LIVE</span></div>
+      <div class="player-frame" id="player-frame"><div class="player-backdrop" id="player-backdrop"><div class="player-vignette"></div><div class="player-scene-label" id="player-scene-label">OPENING</div><div class="player-dialogue"><div class="player-speaker" id="player-speaker">Narrator</div><div class="player-text" id="player-text"></div><div class="player-choices" id="player-choices"></div></div></div></div>
+      <div class="preview-footer"><span>Preview updates as you edit</span><button class="text-button" id="restart-preview-button">Restart ↺</button></div>
+    </aside>
+  </main>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/app.js"></script>
+</body>
+</html>
+

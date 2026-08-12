@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks Condition="'$(NETGalSingleTarget)' != 'true'">net10.0-android;net10.0-ios;net10.0-maccatalyst;net10.0-windows10.0.19041.0</TargetFrameworks>
+    <TargetFramework Condition="'$(NETGalSingleTarget)' == 'true'">$(NETGalTargetFramework)</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>NETGal.Player.Maui</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <ApplicationTitle>NETGal Player</ApplicationTitle>
+    <ApplicationId>com.netgal.player</ApplicationId>
+    <ApplicationTitle Condition="'$(GameContentTitle)' != ''">$(GameContentTitle)</ApplicationTitle>
+    <ApplicationId Condition="'$(GameContentId)' != ''">com.netgal.$(GameContentId)</ApplicationId>
+    <ApplicationDisplayVersion Condition="'$(GameContentVersion)' != ''">$(GameContentVersion)</ApplicationDisplayVersion>
+    <ApplicationVersion Condition="'$(GameContentBuild)' != ''">$(GameContentBuild)</ApplicationVersion>
+    <GameContentRoot Condition="'$(GameContentRoot)' == ''">$(MSBuildProjectDirectory)\..\..\samples\Starfall</GameContentRoot>
+    <WindowsPackageType Condition="'$(WindowsPackageType)' == ''">None</WindowsPackageType>
+    <AndroidPackageFormats Condition="'$(AndroidPackageFormats)' == ''">apk</AndroidPackageFormats>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
+    <PublishAot Condition="'$(TargetFramework)' == 'net10.0-android'">true</PublishAot>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NETGal.Engine\NETGal.Engine.csproj" />
+    <MauiAsset Remove="Resources\Raw\game.json" />
+    <MauiAsset Include="$(GameContentRoot)\game.json" LogicalName="game.json" Condition="Exists('$(GameContentRoot)\game.json')" />
+    <MauiAsset Include="$(GameContentRoot)\assets\**\*" LogicalName="assets/%(RecursiveDir)%(Filename)%(Extension)" Condition="Exists('$(GameContentRoot)\assets')" />
+  </ItemGroup>
+</Project>

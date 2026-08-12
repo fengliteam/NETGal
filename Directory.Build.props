@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <RestoreConfigFile>$(MSBuildThisFileDirectory)NuGet.Config</RestoreConfigFile>
+    <RestorePackagesPath>$(MSBuildThisFileDirectory)work\nuget-packages</RestorePackagesPath>
+  </PropertyGroup>
+</Project>
