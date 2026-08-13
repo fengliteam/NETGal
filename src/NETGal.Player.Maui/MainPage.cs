@@ -46,7 +46,7 @@ public sealed class MainPage : ContentPage
     public MainPage()
     {
         BackgroundColor = Color.FromArgb("#0D141D");
-        Title = "NETGal Player";
+        Title = "NETGal 游戏播放器";
 
         var topBar = new Grid
         {
@@ -55,7 +55,7 @@ public sealed class MainPage : ContentPage
         };
         topBar.Children.Add(new Label
         {
-            Text = "NETGAL PLAYER",
+            Text = "NETGAL 游戏播放器",
             TextColor = Color.FromArgb("#748195"),
             FontSize = 10,
             CharacterSpacing = 3,
@@ -63,7 +63,7 @@ public sealed class MainPage : ContentPage
         });
         var restart = new Button
         {
-            Text = "Restart",
+            Text = "重新开始",
             TextColor = Color.FromArgb("#E19B67"),
             BackgroundColor = Colors.Transparent,
             BorderColor = Color.FromArgb("#4A3A2F"),
@@ -121,7 +121,7 @@ public sealed class MainPage : ContentPage
         }
         catch (Exception exception)
         {
-            _sceneTitle.Text = "LOAD ERROR";
+            _sceneTitle.Text = "加载失败";
             _speaker.Text = "NETGal";
             _dialogue.Text = exception.Message;
         }

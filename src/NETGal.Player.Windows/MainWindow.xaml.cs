@@ -30,11 +30,11 @@ public partial class MainWindow : Window
     {
         try
         {
-            if (!File.Exists(projectPath)) throw new FileNotFoundException("game.json was not found.", projectPath);
+            if (!File.Exists(projectPath)) throw new FileNotFoundException("找不到 game.json 文件。", projectPath);
             _projectDirectory = Path.GetDirectoryName(projectPath) ?? Directory.GetCurrentDirectory();
             _project = await GameProject.LoadAsync(projectPath);
             _runtime = new StoryRuntime(_project);
-            Title = $"{_project.Title} · NETGal Player";
+            Title = $"{_project.Title} · NETGal 游戏播放器";
             LoadingLabel.Visibility = Visibility.Collapsed;
             await RenderAsync();
         }
@@ -42,7 +42,7 @@ public partial class MainWindow : Window
         {
             LoadingLabel.Text = exception.Message;
             SpeakerLabel.Text = "NETGal";
-            DialogueLabel.Text = "The game could not be opened.";
+            DialogueLabel.Text = "游戏无法打开，请检查 game.json 文件。";
         }
     }
 
@@ -50,7 +50,7 @@ public partial class MainWindow : Window
     {
         if (_runtime is null) return;
         var snapshot = _runtime.Snapshot();
-        SceneLabel.Text = snapshot.SceneTitle.ToUpperInvariant();
+        SceneLabel.Text = snapshot.SceneTitle;
         SpeakerLabel.Text = snapshot.Speaker;
         DialogueLabel.Text = snapshot.Text;
         ChoicesPanel.Children.Clear();

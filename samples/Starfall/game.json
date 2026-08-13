@@ -1,7 +1,7 @@
 {
   "id": "starfall",
-  "title": "Starfall · A Tiny Story",
-  "author": "NETGal Creator",
+  "title": "星落 · 一个小故事",
+  "author": "NETGal 创作者",
   "version": "0.1.0",
   "startScene": "intro",
   "settings": {
@@ -12,46 +12,45 @@
   "scenes": [
     {
       "id": "intro",
-      "title": "Opening",
+      "title": "序章",
       "background": "",
-      "speaker": "Narrator",
-      "text": "A new story is waiting to be written.",
+      "speaker": "旁白",
+      "text": "一个新的故事，正在等待被写下。",
       "character": null,
       "choices": [
-        { "id": "begin", "text": "Begin the story", "next": "morning" },
-        { "id": "close", "text": "Stay a little longer", "next": "quiet" }
+        { "id": "begin", "text": "开始这个故事", "next": "morning" },
+        { "id": "close", "text": "再安静地待一会儿", "next": "quiet" }
       ]
     },
     {
       "id": "morning",
-      "title": "A New Morning",
+      "title": "新的清晨",
       "background": "",
-      "speaker": "Mika",
-      "text": "The first light reaches the window. What kind of day will this become?",
+      "speaker": "米卡",
+      "text": "第一缕晨光落在窗边。今天会变成怎样的一天呢？",
       "character": null,
       "choices": [
-        { "id": "walk", "text": "Go outside", "next": "ending" },
-        { "id": "write", "text": "Write the next scene", "next": "ending" }
+        { "id": "walk", "text": "走到外面去", "next": "ending" },
+        { "id": "write", "text": "写下接下来的场景", "next": "ending" }
       ]
     },
     {
       "id": "quiet",
-      "title": "A Quiet Moment",
+      "title": "安静的片刻",
       "background": "",
-      "speaker": "Narrator",
-      "text": "Sometimes a story needs a breath before it moves forward.",
+      "speaker": "旁白",
+      "text": "有时候，故事也需要先停下来，轻轻呼吸一会儿。",
       "character": null,
-      "choices": [ { "id": "return", "text": "Return to the beginning", "next": "intro" } ]
+      "choices": [ { "id": "return", "text": "回到故事开头", "next": "intro" } ]
     },
     {
       "id": "ending",
-      "title": "To Be Continued",
+      "title": "未完待续",
       "background": "",
-      "speaker": "Narrator",
-      "text": "This is the end of the sample chapter. Add more scenes in the editor.",
+      "speaker": "旁白",
+      "text": "这是示例章节的结尾。你可以在编辑器里添加更多场景。",
       "character": null,
-      "choices": [ { "id": "restart", "text": "Play again", "next": "intro" } ]
+      "choices": [ { "id": "restart", "text": "再玩一次", "next": "intro" } ]
     }
   ]
 }
-
