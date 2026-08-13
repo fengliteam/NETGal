@@ -37,36 +37,53 @@ jobs:
       - name: Restore core and native Windows projects
         shell: pwsh
         run: |
-          dotnet restore src/NETGal.Engine/NETGal.Engine.csproj
-          dotnet restore src/NETGal/NETGal.csproj
-          dotnet restore src/NETGal.Player/NETGal.Player.csproj
-          dotnet restore src/NETGal.Player.Windows/NETGal.Player.Windows.csproj -r win-x64
-          dotnet restore src/NETGal.Studio.Windows/NETGal.Studio.Windows.csproj -r win-x64
-          dotnet restore src/NETGal.Player.Maui/NETGal.Player.Maui.csproj -r win-x64 -p:NETGalSingleTarget=true -p:NETGalTargetFramework=net10.0-windows10.0.19041.0
-          dotnet restore src/NETGal.Studio.Maui/NETGal.Studio.Maui.csproj -r win-x64
+          dotnet restore src/NETGal.Engine/NETGal.Engine.csproj --configfile NuGet.Config
+          dotnet restore src/NETGal/NETGal.csproj --configfile NuGet.Config
+          dotnet restore src/NETGal.Player/NETGal.Player.csproj --configfile NuGet.Config
+          dotnet restore src/NETGal.AiPrompt/NETGal.AiPrompt.csproj --configfile NuGet.Config
+          dotnet restore src/NETGal.Player.Windows/NETGal.Player.Windows.csproj -r win-x64 --configfile NuGet.Config
+          dotnet restore src/NETGal.Studio.Windows/NETGal.Studio.Windows.csproj -r win-x64 --configfile NuGet.Config
+          dotnet restore tests/NETGal.Engine.Smoke/NETGal.Engine.Smoke.csproj --configfile NuGet.Config
+          dotnet restore src/NETGal.Player.Maui/NETGal.Player.Maui.csproj -r win-x64 -p:NETGalSingleTarget=true -p:NETGalTargetFramework=net10.0-windows10.0.19041.0 --configfile NuGet.Config
+          dotnet restore src/NETGal.Studio.Maui/NETGal.Studio.Maui.csproj -r win-x64 --configfile NuGet.Config
 
       - name: Build core and CLI
         shell: pwsh
         run: dotnet build src/NETGal/NETGal.csproj --no-restore -c Release --nologo
 
+      - name: Run engine smoke tests
+        shell: pwsh
+        run: dotnet run --project tests/NETGal.Engine.Smoke/NETGal.Engine.Smoke.csproj -c Release --no-restore
+
       - name: Publish WPF native Windows tools
         shell: pwsh
         run: |
-          dotnet publish src/NETGal.Player.Windows/NETGal.Player.Windows.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/player-windows
+          $packageRoot = Join-Path $PWD 'work/native-content/starfall/windows'
+          $keyFile = Join-Path $PWD 'work/native-content/starfall/windows.key'
+          New-Item -ItemType Directory -Force -Path $packageRoot | Out-Null
+          dotnet src/NETGal/bin/Release/net10.0/NETGal.dll protect samples/Starfall $packageRoot $keyFile
+          $packageKey = (Get-Content -Raw -LiteralPath $keyFile).Trim()
+          dotnet publish src/NETGal.Player.Windows/NETGal.Player.Windows.csproj -c Release -r win-x64 -p:GamePackageKey=$packageKey --self-contained true --no-restore -o artifacts/player-windows
+          Copy-Item -LiteralPath (Join-Path $packageRoot 'game.pkg') -Destination (Join-Path $PWD 'artifacts/player-windows/game.pkg') -Force
           dotnet publish src/NETGal.Studio.Windows/NETGal.Studio.Windows.csproj -c Release -r win-x64 --self-contained true --no-restore -o artifacts/studio-windows
 
       - name: Publish MAUI native Windows player and studio
         shell: pwsh
         run: |
-          dotnet publish src/NETGal.Player.Maui/NETGal.Player.Maui.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:NETGalSingleTarget=true -p:NETGalTargetFramework=net10.0-windows10.0.19041.0 -p:WindowsPackageType=None -p:PublishReadyToRun=false -p:GameContentRoot=${{ github.workspace }}\\samples\\Starfall --self-contained true --no-restore -o artifacts/player-maui-windows
+          $packageRoot = Join-Path $PWD 'work/native-content/starfall/windows'
+          $keyFile = Join-Path $PWD 'work/native-content/starfall/windows.key'
+          $packageKey = (Get-Content -Raw -LiteralPath $keyFile).Trim()
+          dotnet publish src/NETGal.Player.Maui/NETGal.Player.Maui.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:NETGalSingleTarget=true -p:NETGalTargetFramework=net10.0-windows10.0.19041.0 -p:WindowsPackageType=None -p:PublishReadyToRun=false -p:GameContentRoot=$packageRoot -p:GamePackageKey=$packageKey --self-contained true --no-restore -o artifacts/player-maui-windows
           dotnet publish src/NETGal.Studio.Maui/NETGal.Studio.Maui.csproj -f net10.0-windows10.0.19041.0 -c Release -r win-x64 -p:WindowsPackageType=None -p:PublishReadyToRun=false --self-contained true --no-restore -o artifacts/studio-maui-windows
+
+          if (Test-Path -LiteralPath 'artifacts/player-windows/game.json') { throw 'Protected Windows player must not contain game.json.' }
+          if (-not (Test-Path -LiteralPath 'artifacts/player-windows/game.pkg')) { throw 'Protected Windows player is missing game.pkg.' }
 
       - name: Smoke test native player
         shell: pwsh
         run: |
           $player = Join-Path $PWD 'artifacts/player-windows/NETGal.Player.Windows.exe'
-          $project = Join-Path $PWD 'samples/Starfall'
-          $process = Start-Process -FilePath $player -ArgumentList "`"$project`"" -PassThru
+          $process = Start-Process -FilePath $player -WorkingDirectory (Split-Path $player) -PassThru
           Start-Sleep -Seconds 5
           if ($process.HasExited) {
             throw "NETGal.Player.Windows exited during smoke test with code $($process.ExitCode)."

@@ -42,6 +42,7 @@ public sealed class MainPage : ContentPage
     };
     private GameProject? _project;
     private StoryRuntime? _runtime;
+    private ProtectedGamePackage? _protectedPackage;
 
     public MainPage()
     {
@@ -50,7 +51,7 @@ public sealed class MainPage : ContentPage
 
         var topBar = new Grid
         {
-            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto) },
+            ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto), new ColumnDefinition(GridLength.Auto) },
             Padding = new Thickness(22, 16, 22, 0)
         };
         topBar.Children.Add(new Label
@@ -73,6 +74,14 @@ public sealed class MainPage : ContentPage
         };
         Grid.SetColumn(restart, 1);
         topBar.Children.Add(restart);
+
+        var save = new Button { Text = "保存", TextColor = Color.FromArgb("#E19B67"), BackgroundColor = Colors.Transparent, Command = new Command(async () => await SaveGameAsync()) };
+        Grid.SetColumn(save, 2);
+        topBar.Children.Add(save);
+
+        var load = new Button { Text = "读取", TextColor = Color.FromArgb("#E19B67"), BackgroundColor = Colors.Transparent, Command = new Command(async () => await LoadGameAsync()) };
+        Grid.SetColumn(load, 3);
+        topBar.Children.Add(load);
 
         var dialoguePanel = new Grid
         {
@@ -109,11 +118,18 @@ public sealed class MainPage : ContentPage
     {
         try
         {
-            await using var stream = await FileSystem.OpenAppPackageFileAsync("game.json");
-            _project = await JsonSerializer.DeserializeAsync(stream, GameJsonContext.Default.GameProject);
-            if (_project is null)
+            var packageKey = GamePackageKey.Load();
+            if (packageKey is not null)
             {
-                throw new InvalidDataException("game.json is empty.");
+                await using var packageStream = await FileSystem.OpenAppPackageFileAsync("game.pkg");
+                _protectedPackage = await ProtectedGamePackage.LoadAsync(packageStream, packageKey);
+                _project = _protectedPackage.Project;
+            }
+            else
+            {
+                await using var stream = await FileSystem.OpenAppPackageFileAsync("game.json");
+                _project = await JsonSerializer.DeserializeAsync(stream, GameJsonContext.Default.GameProject);
+                if (_project is null) throw new InvalidDataException("game.json 内容为空。");
             }
 
             _runtime = new StoryRuntime(_project);
@@ -136,7 +152,7 @@ public sealed class MainPage : ContentPage
     {
         if (_runtime is null) return;
         var snapshot = _runtime.Snapshot();
-        _sceneTitle.Text = snapshot.SceneTitle.ToUpperInvariant();
+        _sceneTitle.Text = snapshot.SceneTitle;
         _speaker.Text = snapshot.Speaker;
         _dialogue.Text = snapshot.Text;
         _choices.Clear();
@@ -170,6 +186,14 @@ public sealed class MainPage : ContentPage
         _background.IsVisible = false;
         if (string.IsNullOrWhiteSpace(backgroundPath)) return;
 
+        if (_protectedPackage is not null)
+        {
+            if (!_protectedPackage.TryGetAsset(backgroundPath, out var protectedBytes)) return;
+            _background.Source = ImageSource.FromStream(() => new MemoryStream(protectedBytes));
+            _background.IsVisible = true;
+            return;
+        }
+
         var assetPath = backgroundPath.Replace('\\', '/');
         if (assetPath.StartsWith("assets/", StringComparison.OrdinalIgnoreCase))
         {
@@ -197,4 +221,37 @@ public sealed class MainPage : ContentPage
         _runtime.Restart();
         await RenderAsync();
     }
+
+    private async Task SaveGameAsync()
+    {
+        if (_project is null || _runtime is null) return;
+        await GameSaveFile.SaveAsync(GetSavePath(), _runtime.CaptureSave(), GetSaveKey());
+        await DisplayAlert("存档", "进度已保存。", "确定");
+    }
+
+    private async Task LoadGameAsync()
+    {
+        if (_project is null) return;
+        var path = GetSavePath();
+        if (!File.Exists(path))
+        {
+            await DisplayAlert("读档", "还没有找到存档。", "确定");
+            return;
+        }
+
+        try
+        {
+            var save = await GameSaveFile.LoadAsync(path, GetSaveKey());
+            _runtime = StoryRuntime.FromSave(_project, save);
+            await RenderAsync();
+        }
+        catch (InvalidDataException exception)
+        {
+            await DisplayAlert("读档失败", exception.Message, "确定");
+        }
+    }
+
+    private string GetSavePath() => Path.Combine(FileSystem.Current.AppDataDirectory, $"{GameProject.Slugify(_project?.Id ?? "game")}.ngsave");
+
+    private byte[] GetSaveKey() => GamePackageKey.Load() ?? GameSaveFile.DeriveKey(_project?.Id ?? "game");
 }

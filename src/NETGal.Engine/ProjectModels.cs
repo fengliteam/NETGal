@@ -6,17 +6,18 @@ namespace NETGal.Engine;
 public sealed class GameProject
 {
     public string Id { get; set; } = "my-game";
-    public string Title { get; set; } = "My GalGame";
-    public string Author { get; set; } = "NETGal Creator";
+    public string Title { get; set; } = "我的 GalGame";
+    public string Author { get; set; } = "NETGal 创作者";
     public string Version { get; set; } = "0.1.0";
     public string StartScene { get; set; } = "intro";
     public GameSettings Settings { get; set; } = new();
+    public Dictionary<string, JsonElement> Variables { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public List<StoryScene> Scenes { get; set; } = [];
 
     [JsonIgnore]
     public StoryScene? Start => Scenes.FirstOrDefault(scene => scene.Id == StartScene) ?? Scenes.FirstOrDefault();
 
-    public static GameProject CreateSample(string title = "My First GalGame")
+    public static GameProject CreateSample(string title = "我的第一个 GalGame")
     {
         return new GameProject
         {
@@ -27,43 +28,43 @@ public sealed class GameProject
                 new StoryScene
                 {
                     Id = "intro",
-                    Title = "Opening",
+                    Title = "序章",
                     Background = "",
-                    Speaker = "Narrator",
-                    Text = "A new story is waiting to be written.",
+                    Speaker = "旁白",
+                    Text = "一个新的故事，正在等待被写下。",
                     Choices =
                     [
-                        new ChoiceOption { Id = "begin", Text = "Begin the story", Next = "morning" },
-                        new ChoiceOption { Id = "close", Text = "Stay a little longer", Next = "quiet" }
+                        new ChoiceOption { Id = "begin", Text = "开始这个故事", Next = "morning" },
+                        new ChoiceOption { Id = "close", Text = "再安静地待一会儿", Next = "quiet" }
                     ]
                 },
                 new StoryScene
                 {
                     Id = "morning",
-                    Title = "A New Morning",
-                    Speaker = "Mika",
-                    Text = "The first light reaches the window. What kind of day will this become?",
+                    Title = "新的清晨",
+                    Speaker = "米卡",
+                    Text = "第一缕晨光落在窗边。今天会变成怎样的一天呢？",
                     Choices =
                     [
-                        new ChoiceOption { Id = "walk", Text = "Go outside", Next = "ending" },
-                        new ChoiceOption { Id = "write", Text = "Write the next scene", Next = "ending" }
+                        new ChoiceOption { Id = "walk", Text = "走到外面去", Next = "ending" },
+                        new ChoiceOption { Id = "write", Text = "写下接下来的场景", Next = "ending" }
                     ]
                 },
                 new StoryScene
                 {
                     Id = "quiet",
-                    Title = "A Quiet Moment",
-                    Speaker = "Narrator",
-                    Text = "Sometimes a story needs a breath before it moves forward.",
-                    Choices = [new ChoiceOption { Id = "return", Text = "Return to the beginning", Next = "intro" }]
+                    Title = "安静的片刻",
+                    Speaker = "旁白",
+                    Text = "有时候，故事也需要先停下来，轻轻呼吸一会儿。",
+                    Choices = [new ChoiceOption { Id = "return", Text = "回到故事开头", Next = "intro" }]
                 },
                 new StoryScene
                 {
                     Id = "ending",
-                    Title = "To Be Continued",
-                    Speaker = "Narrator",
-                    Text = "This is the end of the sample chapter. Add more scenes in the editor.",
-                    Choices = [new ChoiceOption { Id = "restart", Text = "Play again", Next = "intro" }]
+                    Title = "未完待续",
+                    Speaker = "旁白",
+                    Text = "这是示例章节的结尾。你可以在编辑器里添加更多场景。",
+                    Choices = [new ChoiceOption { Id = "restart", Text = "再玩一次", Next = "intro" }]
                 }
             ]
         };
@@ -106,19 +107,40 @@ public sealed class GameSettings
 public sealed class StoryScene
 {
     public string Id { get; set; } = "scene";
-    public string Title { get; set; } = "Untitled Scene";
+    public string Title { get; set; } = "未命名场景";
     public string Background { get; set; } = "";
-    public string Speaker { get; set; } = "Narrator";
-    public string Text { get; set; } = "Write your scene here.";
+    public string Speaker { get; set; } = "旁白";
+    public string Text { get; set; } = "请在这里写下场景内容。";
     public string? Character { get; set; }
+    public List<StoryCommand> Commands { get; set; } = [];
     public List<ChoiceOption> Choices { get; set; } = [];
+
+    [JsonIgnore]
+    public string DisplayName => $"{Id} - {Title}";
+}
+
+public sealed class StoryCommand
+{
+    public string Cmd { get; set; } = "text";
+    public Dictionary<string, JsonElement> Args { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 public sealed class ChoiceOption
 {
     public string Id { get; set; } = "choice";
-    public string Text { get; set; } = "Continue";
+    public string Text { get; set; } = "继续";
     public string Next { get; set; } = "";
+    public string? Condition { get; set; }
+}
+
+public sealed class StorySaveData
+{
+    public int FormatVersion { get; set; } = 1;
+    public string GameId { get; set; } = "";
+    public string CurrentSceneId { get; set; } = "";
+    public Dictionary<string, JsonElement> Variables { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+    public List<string> ReadScenes { get; set; } = [];
+    public DateTimeOffset SavedAtUtc { get; set; } = DateTimeOffset.UtcNow;
 }
 
 public static class JsonOptions
@@ -137,7 +159,11 @@ public static class JsonOptions
 [JsonSerializable(typeof(StoryScene))]
 [JsonSerializable(typeof(ChoiceOption))]
 [JsonSerializable(typeof(List<StoryScene>))]
+[JsonSerializable(typeof(StoryCommand))]
+[JsonSerializable(typeof(List<StoryCommand>))]
 [JsonSerializable(typeof(List<ChoiceOption>))]
+[JsonSerializable(typeof(StorySaveData))]
+[JsonSerializable(typeof(Dictionary<string, JsonElement>))]
 public partial class GameJsonContext : JsonSerializerContext
 {
 }

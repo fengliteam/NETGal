@@ -13,8 +13,8 @@ if (command is "new" or "create")
     Directory.CreateDirectory(target);
     Directory.CreateDirectory(Path.Combine(target, "assets"));
     await GameProject.CreateSample(title).SaveAsync(Path.Combine(target, "game.json"));
-    Console.WriteLine($"Created NETGal project: {target}");
-    Console.WriteLine("Next: dotnet run --project src/NETGal -- play " + directory);
+    Console.WriteLine($"已创建 NETGal 项目：{target}");
+    Console.WriteLine("下一步：dotnet run --project src/NETGal -- play " + directory);
     return;
 }
 
@@ -24,9 +24,39 @@ if (command == "build")
     var outputDirectory = Path.GetFullPath(commandArgs.ElementAtOrDefault(1) ?? Path.Combine(projectDirectory, "dist"));
     var builder = new StaticPackageBuilder(Path.Combine(AppContext.BaseDirectory, "wwwroot", "player-template"));
     var result = await builder.BuildAsync(projectDirectory, outputDirectory);
-    Console.WriteLine($"Built game package: {result.OutputDirectory}");
-    Console.WriteLine($"Zip archive: {result.ZipPath}");
-    Console.WriteLine($"Assets copied: {result.AssetCount}");
+    Console.WriteLine($"游戏包已生成：{result.OutputDirectory}");
+    Console.WriteLine($"压缩包：{result.ZipPath}");
+    Console.WriteLine($"已复制资源：{result.AssetCount}");
+    return;
+}
+
+if (command is "protect" or "package")
+{
+    var projectDirectory = Path.GetFullPath(commandArgs.ElementAtOrDefault(0) ?? ".");
+    var outputDirectory = Path.GetFullPath(commandArgs.ElementAtOrDefault(1) ?? Path.Combine(projectDirectory, "dist", "native-content"));
+    var protectedProjectFile = Path.Combine(projectDirectory, "game.json");
+    if (!File.Exists(protectedProjectFile)) throw new FileNotFoundException("项目中没有 game.json 文件。", protectedProjectFile);
+    var project = await GameProject.LoadAsync(protectedProjectFile);
+    var issues = ProjectValidator.Validate(project).Where(issue => issue.Severity == "error").ToArray();
+    if (issues.Length > 0) throw new InvalidDataException("项目存在错误，无法生成受保护游戏包：\n" + string.Join("\n", issues.Select(issue => $"- {issue.Message}")));
+    Directory.CreateDirectory(outputDirectory);
+    var key = ProtectedGamePackage.CreateKey();
+    var packagePath = Path.Combine(outputDirectory, "game.pkg");
+    await ProtectedGamePackage.CreateAsync(projectDirectory, project, key, packagePath);
+    Console.WriteLine($"受保护游戏包：{packagePath}");
+    var keyFile = commandArgs.ElementAtOrDefault(2);
+    if (string.IsNullOrWhiteSpace(keyFile))
+    {
+        Console.WriteLine($"游戏包密钥：{Convert.ToHexString(key)}");
+    }
+    else
+    {
+        var resolvedKeyFile = Path.GetFullPath(keyFile);
+        var keyDirectory = Path.GetDirectoryName(resolvedKeyFile);
+        if (!string.IsNullOrWhiteSpace(keyDirectory)) Directory.CreateDirectory(keyDirectory);
+        await File.WriteAllTextAsync(resolvedKeyFile, Convert.ToHexString(key));
+        Console.WriteLine($"游戏包密钥已写入：{resolvedKeyFile}");
+    }
     return;
 }
 
@@ -46,7 +76,7 @@ if (!File.Exists(Path.Combine(projectDirectoryForServer, "game.json")))
 {
     var sampleDirectory = Path.Combine(projectDirectoryForServer, "samples", "Starfall");
     Directory.CreateDirectory(Path.Combine(sampleDirectory, "assets"));
-    await GameProject.CreateSample("Starfall · A Tiny Story").SaveAsync(Path.Combine(sampleDirectory, "game.json"));
+    await GameProject.CreateSample("星落 · 一个小故事").SaveAsync(Path.Combine(sampleDirectory, "game.json"));
     projectDirectoryForServer = sampleDirectory;
     Console.WriteLine($"No game.json found. Created a starter project at {sampleDirectory}");
 }
@@ -155,6 +185,11 @@ static async Task PublishNativePlayerAsync(string projectDirectory, string platf
 
     Directory.CreateDirectory(outputDirectory);
     var workspaceRoot = FindWorkspaceRoot();
+    var protectedContentRoot = Path.Combine(workspaceRoot, "work", "native-content", GameProject.Slugify(project.Id), platform);
+    Directory.CreateDirectory(protectedContentRoot);
+    var packageKey = ProtectedGamePackage.CreateKey();
+    await ProtectedGamePackage.CreateAsync(projectDirectory, project, packageKey, Path.Combine(protectedContentRoot, "game.pkg"));
+    var packageKeyHex = Convert.ToHexString(packageKey);
     var dotnetHome = Path.Combine(workspaceRoot, "work", "dotnet-home");
     var packageRoot = Path.Combine(workspaceRoot, "work", "nuget-packages");
     var httpCache = Path.Combine(workspaceRoot, "work", "nuget-http-cache");
@@ -180,11 +215,22 @@ static async Task PublishNativePlayerAsync(string projectDirectory, string platf
     startInfo.ArgumentList.Add("-p:NETGalTargetFramework=" + targetFramework);
     startInfo.ArgumentList.Add("-c");
     startInfo.ArgumentList.Add(configuration);
-    startInfo.ArgumentList.Add("-p:GameContentRoot=" + projectDirectory);
+    startInfo.ArgumentList.Add("-p:GameContentRoot=" + protectedContentRoot);
+    startInfo.ArgumentList.Add("-p:GamePackageKey=" + packageKeyHex);
+    startInfo.ArgumentList.Add("-p:PublishReadyToRun=false");
+    startInfo.ArgumentList.Add("-p:WindowsPackageType=None");
     startInfo.ArgumentList.Add("-p:GameContentId=" + GameProject.Slugify(project.Id));
     startInfo.ArgumentList.Add("-p:GameContentTitle=" + project.Title);
     startInfo.ArgumentList.Add("-p:GameContentVersion=" + project.Version);
     startInfo.ArgumentList.Add("-p:GameContentBuild=1");
+    startInfo.ArgumentList.Add("-p:RestoreConfigFile=" + Path.Combine(workspaceRoot, "NuGet.Config"));
+    if (platform is "windows" or "win")
+    {
+        startInfo.ArgumentList.Add("-r");
+        startInfo.ArgumentList.Add("win-x64");
+        startInfo.ArgumentList.Add("--self-contained");
+        startInfo.ArgumentList.Add("true");
+    }
     startInfo.ArgumentList.Add("-o");
     startInfo.ArgumentList.Add(outputDirectory);
     startInfo.Environment["DOTNET_CLI_HOME"] = dotnetHome;
@@ -192,9 +238,9 @@ static async Task PublishNativePlayerAsync(string projectDirectory, string platf
     startInfo.Environment["NUGET_HTTP_CACHE_PATH"] = httpCache;
     startInfo.Environment["APPDATA"] = appData;
 
-    Console.WriteLine($"Publishing native {platform} player for {project.Title}...");
-    Console.WriteLine($"Target framework: {targetFramework}");
-    Console.WriteLine($"Output: {outputDirectory}");
+    Console.WriteLine($"正在为“{project.Title}”发布 {platform} 原生播放器...");
+    Console.WriteLine($"目标框架：{targetFramework}");
+    Console.WriteLine($"输出目录：{outputDirectory}");
     using var process = Process.Start(startInfo) ?? throw new InvalidOperationException("Could not start dotnet publish.");
     var stdoutTask = ForwardOutputAsync(process.StandardOutput, Console.Out);
     var stderrTask = ForwardOutputAsync(process.StandardError, Console.Error);
@@ -205,7 +251,7 @@ static async Task PublishNativePlayerAsync(string projectDirectory, string platf
         throw new InvalidOperationException($"Native publish failed with exit code {process.ExitCode}.");
     }
 
-    Console.WriteLine($"Native {platform} player published to {outputDirectory}");
+    Console.WriteLine($"{platform} 原生播放器已发布到：{outputDirectory}");
 }
 
 static async Task ForwardOutputAsync(StreamReader reader, TextWriter writer)

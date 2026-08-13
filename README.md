@@ -15,10 +15,14 @@ The architecture is deliberately split into a platform-neutral core and platform
 
 The same `game.json` format is used everywhere. Gameplay rules are not tied to a browser, so a native host can replace the UI, storage, audio, and lifecycle services without forking the engine.
 
+Chinese user, developer, plugin, and AI prompt documentation is in [`docs/`](docs/). The repository is released under [Apache License 2.0](LICENSE). Most of the initial implementation was produced with assistance from AI programming tools such as GitHub Copilot and OpenAI Codex, then reviewed, integrated, and tested in this repository. Contributors may use AI tools for modifications, but remain responsible for correctness, security, licensing, and disclosure in pull requests.
+
 ## Requirements
 
-- .NET 10 SDK
+- .NET 10 SDK for development and local builds
 - A modern browser
+
+Released native artifacts are self-contained and do not require the .NET SDK or runtime on the player's machine. The SDK and platform workloads are only needed on the build machine.
 
 ## Quick start
 
@@ -88,13 +92,25 @@ dotnet workload install maui
 
 For Android release signing, pass the standard MAUI/MSBuild signing properties or configure them in your CI secret store. For iOS and Mac Catalyst, configure the Apple signing identity and provisioning profile on a macOS build host.
 
-The native player uses NativeAOT for a self-contained executable and does not require the .NET runtime on the player's machine. The exact runtime identifier can be changed for your release pipeline:
+The terminal player can use NativeAOT for a self-contained executable. WPF and MAUI GUI releases are self-contained native Windows/mobile applications and do not require the .NET runtime on the player's machine. The terminal target can be changed for your release pipeline:
 
 ```powershell
 dotnet publish src/NETGal.Player -c Release -r win-x64 -p:PublishAot=true --self-contained true -o dist/native/win-x64
 dotnet publish src/NETGal.Player -c Release -r linux-x64 -p:PublishAot=true --self-contained true -o dist/native/linux-x64
 dotnet publish src/NETGal.Player -c Release -r osx-arm64 -p:PublishAot=true --self-contained true -o dist/native/osx-arm64
 ```
+
+### Protected native game packages
+
+The editor source project remains editable as `game.json`. Native game publishing creates an authenticated encrypted `game.pkg` containing the story and assets, and embeds a per-build key into the native player. Native players refuse missing, modified, or corrupted packages, so the shipped output does not expose readable story JSON or loose game assets.
+
+Use the explicit package command when you need a protected content file for another native host:
+
+```powershell
+dotnet run --project src/NETGal -- protect samples/MyGame work/native-content work/native-content/game.key
+```
+
+The key is for the build pipeline and must not be distributed as a separate player file. The `publish`/`native` command creates the package and embeds its key automatically. This raises the cost of casual editing and extraction; no client-side game can be made absolutely impossible to reverse engineer because a playable client must contain the code and key needed to decrypt its own content. Browser/static web exports remain inherently inspectable and should not be used for secret content.
 
 The current native player is a terminal host, useful for validating the AOT runtime and project format. The MAUI host is the native UI path for touch devices:
 
@@ -145,3 +161,5 @@ The editor currently focuses on the core visual-novel loop: backgrounds, dialogu
 - `src/NETGal.Player`: NativeAOT player host
 - `src/NETGal.Player.Maui`: native mobile/desktop UI host
 - `samples/Starfall`: example project generated for first launch
+- `tests/NETGal.Engine.Smoke`: dependency-light engine, save, parser, and package integrity tests
+- `docs`: Chinese user, developer, plugin, and AI prompt documentation

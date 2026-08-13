@@ -4,7 +4,7 @@
     <Border Grid.Row="0" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,0,1" Padding="18,12">
       <DockPanel>
         <StackPanel DockPanel.Dock="Left"><TextBlock x:Name="ProjectTitle" Text="NETGal 编辑器" Foreground="{StaticResource TextBrush}" FontSize="18" FontWeight="Bold" /><TextBlock x:Name="StatusLabel" Text="打开 game.json 开始编辑" Foreground="{StaticResource MutedBrush}" FontSize="11" /></StackPanel>
-        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button x:Name="OpenButton" Content="打开项目" Click="OpenButton_Click" /><Button x:Name="SaveButton" Content="保存项目" Click="SaveButton_Click" IsEnabled="False" /><Button Content="新增场景" Click="AddSceneButton_Click" /></StackPanel>
+        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"><Button x:Name="OpenButton" Content="打开项目" Click="OpenButton_Click" /><Button x:Name="SaveButton" Content="保存项目" Click="SaveButton_Click" IsEnabled="False" /><Button Content="新增场景" Click="AddSceneButton_Click" /><Button Content="复制 AI 规范" Click="AiPromptButton_Click" /></StackPanel>
       </DockPanel>
     </Border>
     <Grid Grid.Row="1" Margin="14">

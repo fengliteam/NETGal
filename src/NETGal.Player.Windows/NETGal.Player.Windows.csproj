@@ -6,9 +6,22 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>NETGal.Player.Windows</AssemblyName>
+    <GamePackageKey Condition="'$(GamePackageKey)' == ''">$(NETGAL_GAME_PACKAGE_KEY)</GamePackageKey>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NETGal.Engine\NETGal.Engine.csproj" />
+    <Compile Include="$(IntermediateOutputPath)GeneratedGamePackageKey.cs" AutoGen="true" DesignTime="false" />
   </ItemGroup>
+  <Target Name="GenerateGamePackageKey" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <ItemGroup>
+      <_GamePackageKeySource Include="namespace NETGal.Player.Windows {" />
+      <_GamePackageKeySource Include="internal static class GamePackageKey" />
+      <_GamePackageKeySource Include="{" />
+      <_GamePackageKeySource Include="    internal static byte[]? Load() =&gt; string.IsNullOrWhiteSpace(&quot;$(GamePackageKey)&quot;) ? null : global::System.Convert.FromHexString(&quot;$(GamePackageKey)&quot;)%3B" />
+      <_GamePackageKeySource Include="}" />
+      <_GamePackageKeySource Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(IntermediateOutputPath)GeneratedGamePackageKey.cs" Overwrite="true" Lines="@(_GamePackageKeySource)" />
+  </Target>
 </Project>
-

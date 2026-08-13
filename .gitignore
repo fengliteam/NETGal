@@ -5,3 +5,5 @@ work/
 *.user
 *.suo
 .vs/
+*.key
+*.pkg

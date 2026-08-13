@@ -197,7 +197,7 @@ public sealed class MainPage : ContentPage
             var textEntry = new Entry { Text = choice.Text, Placeholder = "选项文字", TextColor = Colors.White, BackgroundColor = Color.FromArgb("#18212C") };
             textEntry.TextChanged += (_, args) => choice.Text = args.NewTextValue;
             var nextPicker = new Picker { Title = "下一场景", TextColor = Colors.White, BackgroundColor = Color.FromArgb("#18212C") };
-            foreach (var target in _project.Scenes) nextPicker.Items.Add(target.Title);
+            foreach (var target in _project.Scenes) nextPicker.Items.Add(target.DisplayName);
             nextPicker.SelectedIndex = Math.Max(0, _project.Scenes.FindIndex(target => target.Id == choice.Next));
             nextPicker.SelectedIndexChanged += (_, _) => { if (nextPicker.SelectedIndex >= 0) choice.Next = _project.Scenes[nextPicker.SelectedIndex].Id; };
             var remove = new Button { Text = "×", TextColor = Color.FromArgb("#ED7A7A"), BackgroundColor = Colors.Transparent, FontSize = 20 };

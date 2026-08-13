@@ -1,8 +1,10 @@
 using Microsoft.Win32;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using NETGal.AiPrompt;
 using NETGal.Engine;
 
 namespace NETGal.Studio.Windows;
@@ -12,6 +14,7 @@ public partial class MainWindow : Window
     private GameProject? _project;
     private string? _projectPath;
     private StoryRuntime? _previewRuntime;
+    private readonly PluginCatalog _plugins = new();
 
     public MainWindow()
     {
@@ -35,6 +38,8 @@ public partial class MainWindow : Window
         {
             _project = await GameProject.LoadAsync(Path.GetFullPath(path));
             _projectPath = Path.GetFullPath(path);
+            var projectDirectory = Path.GetDirectoryName(_projectPath) ?? Directory.GetCurrentDirectory();
+            _plugins.LoadFromDirectory(Path.Combine(projectDirectory, "plugins"));
             _previewRuntime = new StoryRuntime(_project);
             ProjectTitle.Text = _project.Title;
             StatusLabel.Text = _projectPath;
@@ -69,6 +74,12 @@ public partial class MainWindow : Window
         SceneList.SelectedIndex = _project.Scenes.Count - 1;
     }
 
+    private void AiPromptButton_Click(object sender, RoutedEventArgs e)
+    {
+        Clipboard.SetText(AiPromptPlugin.GetSpecificationPrompt());
+        StatusLabel.Text = "AI 规范已复制；请先让 AI 提问，再把 JSON 指令粘贴回编辑器。";
+    }
+
     private void SceneList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (SceneList.SelectedItem is StoryScene scene) RenderScene(scene);
@@ -79,7 +90,7 @@ public partial class MainWindow : Window
         if (_project is null) return;
         SceneList.ItemsSource = null;
         SceneList.ItemsSource = _project.Scenes;
-        SceneList.DisplayMemberPath = nameof(StoryScene.Title);
+        SceneList.DisplayMemberPath = nameof(StoryScene.DisplayName);
         if (SceneList.SelectedIndex < 0 && _project.Scenes.Count > 0) SceneList.SelectedIndex = 0;
     }
 
@@ -94,6 +105,18 @@ public partial class MainWindow : Window
         EditorPanel.Children.Add(Label("对白"));
         EditorPanel.Children.Add(Field("说话人", scene.Speaker, value => { scene.Speaker = value; RenderPreview(scene); }));
         EditorPanel.Children.Add(MultilineField("对白内容", scene.Text, value => { scene.Text = value; RenderPreview(scene); }));
+        EditorPanel.Children.Add(MultilineField("指令 JSON（可选）", SerializeCommands(scene.Commands), value =>
+        {
+            try
+            {
+                scene.Commands = JsonSerializer.Deserialize(value, GameJsonContext.Default.ListStoryCommand) ?? [];
+                StatusLabel.Text = "指令已更新";
+            }
+            catch (JsonException)
+            {
+                StatusLabel.Text = "指令 JSON 格式有误，保存前请修正";
+            }
+        }));
         EditorPanel.Children.Add(Label("选项"));
         foreach (var choice in scene.Choices.ToArray()) EditorPanel.Children.Add(ChoiceRow(scene, choice));
         var addChoice = new Button { Content = "+ 新增选项", HorizontalAlignment = HorizontalAlignment.Left, Foreground = (System.Windows.Media.Brush)FindResource("AccentBrush") };
@@ -110,7 +133,7 @@ public partial class MainWindow : Window
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         var text = new TextBox { Text = choice.Text };
         text.TextChanged += (sender, _) => { choice.Text = ((TextBox)sender).Text; RenderPreview(scene); };
-        var next = new ComboBox { ItemsSource = _project?.Scenes, DisplayMemberPath = nameof(StoryScene.Title), SelectedValuePath = nameof(StoryScene.Id), SelectedValue = choice.Next, Margin = new Thickness(8, 4, 8, 10) };
+        var next = new ComboBox { ItemsSource = _project?.Scenes, DisplayMemberPath = nameof(StoryScene.DisplayName), SelectedValuePath = nameof(StoryScene.Id), SelectedValue = choice.Next, Margin = new Thickness(8, 4, 8, 10) };
         next.SelectionChanged += (_, _) => { if (next.SelectedValue is string value) choice.Next = value; };
         var remove = new Button { Content = "×", Foreground = (System.Windows.Media.Brush)FindResource("AccentBrush") };
         remove.Click += (_, _) => { scene.Choices.Remove(choice); RenderScene(scene); };
@@ -144,6 +167,7 @@ public partial class MainWindow : Window
 
     private TextBlock Label(string text) => new() { Text = text, Foreground = (System.Windows.Media.Brush)FindResource("MutedBrush"), FontSize = 11, Margin = new Thickness(0, 8, 0, 0) };
     private TextBlock Heading(string text) => new() { Text = text, Foreground = (System.Windows.Media.Brush)FindResource("TextBrush"), FontSize = 22, FontWeight = FontWeights.Bold, Margin = new Thickness(0, 0, 0, 16) };
+    private static string SerializeCommands(IReadOnlyList<StoryCommand> commands) => JsonSerializer.Serialize(commands, GameJsonContext.Default.ListStoryCommand);
 
     private void RenderPreview(StoryScene scene)
     {

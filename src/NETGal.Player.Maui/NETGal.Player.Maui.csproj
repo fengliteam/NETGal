@@ -14,6 +14,7 @@
     <ApplicationId Condition="'$(GameContentId)' != ''">com.netgal.$(GameContentId)</ApplicationId>
     <ApplicationDisplayVersion Condition="'$(GameContentVersion)' != ''">$(GameContentVersion)</ApplicationDisplayVersion>
     <ApplicationVersion Condition="'$(GameContentBuild)' != ''">$(GameContentBuild)</ApplicationVersion>
+    <GamePackageKey Condition="'$(GamePackageKey)' == ''">$(NETGAL_GAME_PACKAGE_KEY)</GamePackageKey>
     <GameContentRoot Condition="'$(GameContentRoot)' == ''">$(MSBuildProjectDirectory)\..\..\samples\Starfall</GameContentRoot>
     <WindowsPackageType Condition="'$(WindowsPackageType)' == ''">None</WindowsPackageType>
     <AndroidPackageFormats Condition="'$(AndroidPackageFormats)' == ''">apk</AndroidPackageFormats>
@@ -25,8 +26,22 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NETGal.Engine\NETGal.Engine.csproj" />
+    <Compile Include="$(IntermediateOutputPath)GeneratedGamePackageKey.cs" AutoGen="true" DesignTime="false" />
     <MauiAsset Remove="Resources\Raw\game.json" />
-    <MauiAsset Include="$(GameContentRoot)\game.json" LogicalName="game.json" Condition="Exists('$(GameContentRoot)\game.json')" />
-    <MauiAsset Include="$(GameContentRoot)\assets\**\*" LogicalName="assets/%(RecursiveDir)%(Filename)%(Extension)" Condition="Exists('$(GameContentRoot)\assets')" />
+    <MauiAsset Include="$(GameContentRoot)\game.pkg" LogicalName="game.pkg" Condition="'$(GamePackageKey)' != '' and Exists('$(GameContentRoot)\game.pkg')" />
+    <MauiAsset Include="$(GameContentRoot)\game.json" LogicalName="game.json" Condition="'$(GamePackageKey)' == '' and Exists('$(GameContentRoot)\game.json')" />
+    <MauiAsset Include="$(GameContentRoot)\assets\**\*" LogicalName="assets/%(RecursiveDir)%(Filename)%(Extension)" Condition="'$(GamePackageKey)' == '' and Exists('$(GameContentRoot)\assets')" />
   </ItemGroup>
+  <Target Name="GenerateGamePackageKey" BeforeTargets="CoreCompile">
+    <MakeDir Directories="$(IntermediateOutputPath)" />
+    <ItemGroup>
+      <_GamePackageKeySource Include="namespace NETGal.Player.Maui {" />
+      <_GamePackageKeySource Include="internal static class GamePackageKey" />
+      <_GamePackageKeySource Include="{" />
+      <_GamePackageKeySource Include="    internal static byte[]? Load() =&gt; string.IsNullOrWhiteSpace(&quot;$(GamePackageKey)&quot;) ? null : global::System.Convert.FromHexString(&quot;$(GamePackageKey)&quot;)%3B" />
+      <_GamePackageKeySource Include="}" />
+      <_GamePackageKeySource Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(IntermediateOutputPath)GeneratedGamePackageKey.cs" Overwrite="true" Lines="@(_GamePackageKeySource)" />
+  </Target>
 </Project>

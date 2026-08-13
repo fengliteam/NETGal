@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETGal", "src\NETGal\NETGal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETGal.Engine", "src\NETGal.Engine\NETGal.Engine.csproj", "{B6D4F2A1-9C8E-4E73-A5F0-2D1B7C9E4A62}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETGal.AiPrompt", "src\NETGal.AiPrompt\NETGal.AiPrompt.csproj", "{D3E5F7A9-2C4B-4D6E-8F1A-0B7C9E5D2F33}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETGal.Player", "src\NETGal.Player\NETGal.Player.csproj", "{D9B5F3A1-2C7E-4F68-A0D1-6B8E4C2A9F73}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETGal.Player.Maui", "src\NETGal.Player.Maui\NETGal.Player.Maui.csproj", "{E3A7C1D5-8F29-4B6E-9D04-2A6C7B1E5F80}"
@@ -15,6 +17,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETGal.Player.Windows", "src\NETGal.Player.Windows\NETGal.Player.Windows.csproj", "{A4D8C2F1-7B3E-49D6-AC50-1E9F4B7D2C86}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETGal.Studio.Windows", "src\NETGal.Studio.Windows\NETGal.Studio.Windows.csproj", "{C8E1A5B7-2D4F-46A9-90C3-7B6E1D5F8A24}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NETGal.Engine.Smoke", "tests\NETGal.Engine.Smoke\NETGal.Engine.Smoke.csproj", "{E2F4B6C8-1A3D-4E5F-9B7C-0D2A6F8E4C11}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,6 +34,10 @@ Global
 		{B6D4F2A1-9C8E-4E73-A5F0-2D1B7C9E4A62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6D4F2A1-9C8E-4E73-A5F0-2D1B7C9E4A62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6D4F2A1-9C8E-4E73-A5F0-2D1B7C9E4A62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3E5F7A9-2C4B-4D6E-8F1A-0B7C9E5D2F33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E5F7A9-2C4B-4D6E-8F1A-0B7C9E5D2F33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E5F7A9-2C4B-4D6E-8F1A-0B7C9E5D2F33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E5F7A9-2C4B-4D6E-8F1A-0B7C9E5D2F33}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D9B5F3A1-2C7E-4F68-A0D1-6B8E4C2A9F73}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D9B5F3A1-2C7E-4F68-A0D1-6B8E4C2A9F73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9B5F3A1-2C7E-4F68-A0D1-6B8E4C2A9F73}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -50,5 +58,9 @@ Global
 		{C8E1A5B7-2D4F-46A9-90C3-7B6E1D5F8A24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C8E1A5B7-2D4F-46A9-90C3-7B6E1D5F8A24}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C8E1A5B7-2D4F-46A9-90C3-7B6E1D5F8A24}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2F4B6C8-1A3D-4E5F-9B7C-0D2A6F8E4C11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2F4B6C8-1A3D-4E5F-9B7C-0D2A6F8E4C11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2F4B6C8-1A3D-4E5F-9B7C-0D2A6F8E4C11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2F4B6C8-1A3D-4E5F-9B7C-0D2A6F8E4C11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

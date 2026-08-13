@@ -9,6 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\NETGal.Engine\NETGal.Engine.csproj" />
+    <ProjectReference Include="..\NETGal.AiPrompt\NETGal.AiPrompt.csproj" />
   </ItemGroup>
 </Project>
-
