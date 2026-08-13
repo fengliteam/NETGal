@@ -17,12 +17,12 @@ public sealed class MainPage : ContentPage
     public MainPage()
     {
         BackgroundColor = Color.FromArgb("#0D141D");
-        Title = "NETGal Studio";
+        Title = "NETGal 编辑器";
 
-        var openButton = CreateHeaderButton("Open project", OpenProjectAsync);
-        _saveButton = CreateHeaderButton("Save project", SaveProjectAsync);
+        var openButton = CreateHeaderButton("打开项目", OpenProjectAsync);
+        _saveButton = CreateHeaderButton("保存项目", SaveProjectAsync);
         _saveButton.IsEnabled = false;
-        var addSceneButton = CreateHeaderButton("+ Scene", AddScene);
+        var addSceneButton = CreateHeaderButton("+ 新增场景", AddScene);
 
         var header = new Grid
         {
@@ -93,21 +93,21 @@ public sealed class MainPage : ContentPage
     {
         _sceneList.Clear();
         _editor.Clear();
-        _editor.Add(new Label { Text = "Native project studio", TextColor = Colors.White, FontSize = 22, FontAttributes = FontAttributes.Bold });
-        _editor.Add(new Label { Text = "Open a game.json file to edit scenes, dialogue, choices, and project settings. This editor uses native Windows controls and writes the same JSON consumed by the Android, Windows, iOS, and Mac Catalyst players.", TextColor = Color.FromArgb("#8894A7"), FontSize = 14, LineBreakMode = LineBreakMode.WordWrap });
-        _editor.Add(new Label { Text = "The browser editor remains available as a lightweight alternative, but exported games never use a browser UI.", TextColor = Color.FromArgb("#E19B67"), FontSize = 12, LineBreakMode = LineBreakMode.WordWrap });
+        _editor.Add(new Label { Text = "原生项目编辑器", TextColor = Colors.White, FontSize = 22, FontAttributes = FontAttributes.Bold });
+        _editor.Add(new Label { Text = "打开 game.json 后，可以编辑场景、对白、选项和项目设置。编辑器使用原生 Windows 控件，并写入 Android、Windows、iOS 和 Mac Catalyst 播放器都能使用的同一份 JSON。", TextColor = Color.FromArgb("#8894A7"), FontSize = 14, LineBreakMode = LineBreakMode.WordWrap });
+        _editor.Add(new Label { Text = "浏览器编辑器仍然可以作为轻量备用工具，但导出的游戏不会使用浏览器界面。", TextColor = Color.FromArgb("#E19B67"), FontSize = 12, LineBreakMode = LineBreakMode.WordWrap });
     }
 
     private async Task OpenProjectAsync()
     {
-        var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Open NETGal game.json" });
+        var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "打开 NETGal game.json" });
         if (file is null) return;
 
         await using var stream = await file.OpenReadAsync();
         _project = await JsonSerializer.DeserializeAsync(stream, GameJsonContext.Default.GameProject);
         if (_project is null)
         {
-            await DisplayAlert("Open failed", "The selected file is not a valid NETGal project.", "OK");
+            await DisplayAlert("打开失败", "选择的文件不是有效的 NETGal 项目。", "确定");
             return;
         }
 
@@ -125,19 +125,19 @@ public sealed class MainPage : ContentPage
         var issues = ProjectValidator.Validate(_project);
         if (issues.Any(issue => issue.Severity == "error"))
         {
-            await DisplayAlert("Cannot save", string.Join(Environment.NewLine, issues.Where(issue => issue.Severity == "error").Select(issue => issue.Message)), "OK");
+            await DisplayAlert("无法保存", string.Join(Environment.NewLine, issues.Where(issue => issue.Severity == "error").Select(issue => issue.Message)), "确定");
             return;
         }
 
         await _project.SaveAsync(_projectPath);
-        _status.Text = $"Saved {DateTime.Now:HH:mm:ss} · {_projectPath}";
+        _status.Text = $"已保存 {DateTime.Now:HH:mm:ss} · {_projectPath}";
     }
 
     private Task AddScene()
     {
         if (_project is null) return Task.CompletedTask;
         var index = _project.Scenes.Count + 1;
-        var scene = new StoryScene { Id = $"scene-{index}", Title = "New Scene", Speaker = "Narrator", Text = "Write your scene here." };
+        var scene = new StoryScene { Id = $"scene-{index}", Title = "新场景", Speaker = "旁白", Text = "请在这里写下场景内容。" };
         _project.Scenes.Add(scene);
         _selectedSceneId = scene.Id;
         RenderProject();
@@ -173,19 +173,19 @@ public sealed class MainPage : ContentPage
         _editor.Clear();
         if (scene is null)
         {
-            _editor.Add(new Label { Text = "Select a scene", TextColor = Color.FromArgb("#8894A7"), FontSize = 16 });
+        _editor.Add(new Label { Text = "请选择一个场景", TextColor = Color.FromArgb("#8894A7"), FontSize = 16 });
             return;
         }
 
         _editor.Add(new Label { Text = scene.Title, TextColor = Colors.White, FontSize = 22, FontAttributes = FontAttributes.Bold });
-        _editor.Add(CreateSection("SCENE"));
-        _editor.Add(CreateEntry("Scene ID", scene.Id, value => { scene.Id = value; _selectedSceneId = value; RenderProject(); }));
-        _editor.Add(CreateEntry("Display title", scene.Title, value => { scene.Title = value; RenderProject(); }));
-        _editor.Add(CreateEntry("Background path", scene.Background, value => scene.Background = value));
-        _editor.Add(CreateSection("DIALOGUE"));
-        _editor.Add(CreateEntry("Speaker", scene.Speaker, value => scene.Speaker = value));
-        _editor.Add(CreateEditor("Dialogue", scene.Text, value => scene.Text = value));
-        _editor.Add(CreateSection("CHOICES"));
+        _editor.Add(CreateSection("场景"));
+        _editor.Add(CreateEntry("场景 ID", scene.Id, value => { scene.Id = value; _selectedSceneId = value; RenderProject(); }));
+        _editor.Add(CreateEntry("显示标题", scene.Title, value => { scene.Title = value; RenderProject(); }));
+        _editor.Add(CreateEntry("背景图片路径", scene.Background, value => scene.Background = value));
+        _editor.Add(CreateSection("对白"));
+        _editor.Add(CreateEntry("说话人", scene.Speaker, value => scene.Speaker = value));
+        _editor.Add(CreateEditor("对白内容", scene.Text, value => scene.Text = value));
+        _editor.Add(CreateSection("选项"));
 
         foreach (var choice in scene.Choices.ToArray())
         {
@@ -194,9 +194,9 @@ public sealed class MainPage : ContentPage
                 ColumnDefinitions = { new ColumnDefinition(GridLength.Star), new ColumnDefinition(new GridLength(160)), new ColumnDefinition(GridLength.Auto) },
                 ColumnSpacing = 8
             };
-            var textEntry = new Entry { Text = choice.Text, Placeholder = "Choice text", TextColor = Colors.White, BackgroundColor = Color.FromArgb("#18212C") };
+            var textEntry = new Entry { Text = choice.Text, Placeholder = "选项文字", TextColor = Colors.White, BackgroundColor = Color.FromArgb("#18212C") };
             textEntry.TextChanged += (_, args) => choice.Text = args.NewTextValue;
-            var nextPicker = new Picker { Title = "Next scene", TextColor = Colors.White, BackgroundColor = Color.FromArgb("#18212C") };
+            var nextPicker = new Picker { Title = "下一场景", TextColor = Colors.White, BackgroundColor = Color.FromArgb("#18212C") };
             foreach (var target in _project.Scenes) nextPicker.Items.Add(target.Title);
             nextPicker.SelectedIndex = Math.Max(0, _project.Scenes.FindIndex(target => target.Id == choice.Next));
             nextPicker.SelectedIndexChanged += (_, _) => { if (nextPicker.SelectedIndex >= 0) choice.Next = _project.Scenes[nextPicker.SelectedIndex].Id; };
@@ -210,8 +210,8 @@ public sealed class MainPage : ContentPage
             _editor.Add(choiceRow);
         }
 
-        var addChoice = new Button { Text = "+ Add choice", TextColor = Color.FromArgb("#E19B67"), BackgroundColor = Colors.Transparent, HorizontalOptions = LayoutOptions.Start };
-        addChoice.Clicked += (_, _) => { scene.Choices.Add(new ChoiceOption { Id = $"choice-{scene.Choices.Count + 1}", Text = "New choice", Next = _project.Scenes.FirstOrDefault(target => target.Id != scene.Id)?.Id ?? scene.Id }); RenderSceneEditor(scene); };
+        var addChoice = new Button { Text = "+ 新增选项", TextColor = Color.FromArgb("#E19B67"), BackgroundColor = Colors.Transparent, HorizontalOptions = LayoutOptions.Start };
+        addChoice.Clicked += (_, _) => { scene.Choices.Add(new ChoiceOption { Id = $"choice-{scene.Choices.Count + 1}", Text = "新选项", Next = _project.Scenes.FirstOrDefault(target => target.Id != scene.Id)?.Id ?? scene.Id }); RenderSceneEditor(scene); };
         _editor.Add(addChoice);
     }
 

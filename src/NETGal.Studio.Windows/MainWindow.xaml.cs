@@ -25,7 +25,7 @@ public partial class MainWindow : Window
 
     private async void OpenButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Filter = "NETGal project|game.json|JSON files|*.json", Title = "Open NETGal game.json" };
+        var dialog = new OpenFileDialog { Filter = "NETGal 项目|game.json|JSON 文件|*.json", Title = "打开 NETGal game.json" };
         if (dialog.ShowDialog() == true) await LoadProjectAsync(dialog.FileName);
     }
 
@@ -43,7 +43,7 @@ public partial class MainWindow : Window
         }
         catch (Exception exception)
         {
-            MessageBox.Show(exception.Message, "Could not open project", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(exception.Message, "无法打开项目", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -53,18 +53,18 @@ public partial class MainWindow : Window
         var issues = ProjectValidator.Validate(_project).Where(issue => issue.Severity == "error").ToArray();
         if (issues.Length > 0)
         {
-            MessageBox.Show(string.Join(Environment.NewLine, issues.Select(issue => issue.Message)), "Fix project errors", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(string.Join(Environment.NewLine, issues.Select(issue => issue.Message)), "请先修复项目错误", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
         await _project.SaveAsync(_projectPath);
-        StatusLabel.Text = $"Saved {DateTime.Now:HH:mm:ss} · {_projectPath}";
+        StatusLabel.Text = $"已保存 {DateTime.Now:HH:mm:ss} · {_projectPath}";
     }
 
     private void AddSceneButton_Click(object sender, RoutedEventArgs e)
     {
         if (_project is null) return;
         var id = $"scene-{_project.Scenes.Count + 1}";
-        _project.Scenes.Add(new StoryScene { Id = id, Title = "New Scene", Speaker = "Narrator", Text = "Write your scene here." });
+        _project.Scenes.Add(new StoryScene { Id = id, Title = "新场景", Speaker = "旁白", Text = "请在这里写下场景内容。" });
         RenderProject();
         SceneList.SelectedIndex = _project.Scenes.Count - 1;
     }
@@ -87,17 +87,17 @@ public partial class MainWindow : Window
     {
         EditorPanel.Children.Clear();
         EditorPanel.Children.Add(Heading(scene.Title));
-        EditorPanel.Children.Add(Label("SCENE"));
-        EditorPanel.Children.Add(Field("Scene ID", scene.Id, value => { scene.Id = value; SceneList.Items.Refresh(); }));
-        EditorPanel.Children.Add(Field("Display title", scene.Title, value => { scene.Title = value; ProjectTitle.Text = _project?.Title ?? "NETGal Studio"; SceneList.Items.Refresh(); }));
-        EditorPanel.Children.Add(Field("Background path", scene.Background, value => { scene.Background = value; RenderPreview(scene); }));
-        EditorPanel.Children.Add(Label("DIALOGUE"));
-        EditorPanel.Children.Add(Field("Speaker", scene.Speaker, value => { scene.Speaker = value; RenderPreview(scene); }));
-        EditorPanel.Children.Add(MultilineField("Dialogue", scene.Text, value => { scene.Text = value; RenderPreview(scene); }));
-        EditorPanel.Children.Add(Label("CHOICES"));
+        EditorPanel.Children.Add(Label("场景"));
+        EditorPanel.Children.Add(Field("场景 ID", scene.Id, value => { scene.Id = value; SceneList.Items.Refresh(); }));
+        EditorPanel.Children.Add(Field("显示标题", scene.Title, value => { scene.Title = value; ProjectTitle.Text = _project?.Title ?? "NETGal 编辑器"; SceneList.Items.Refresh(); }));
+        EditorPanel.Children.Add(Field("背景图片路径", scene.Background, value => { scene.Background = value; RenderPreview(scene); }));
+        EditorPanel.Children.Add(Label("对白"));
+        EditorPanel.Children.Add(Field("说话人", scene.Speaker, value => { scene.Speaker = value; RenderPreview(scene); }));
+        EditorPanel.Children.Add(MultilineField("对白内容", scene.Text, value => { scene.Text = value; RenderPreview(scene); }));
+        EditorPanel.Children.Add(Label("选项"));
         foreach (var choice in scene.Choices.ToArray()) EditorPanel.Children.Add(ChoiceRow(scene, choice));
-        var addChoice = new Button { Content = "+ Add choice", HorizontalAlignment = HorizontalAlignment.Left, Foreground = (System.Windows.Media.Brush)FindResource("AccentBrush") };
-        addChoice.Click += (_, _) => { scene.Choices.Add(new ChoiceOption { Id = $"choice-{scene.Choices.Count + 1}", Text = "New choice", Next = _project?.Scenes.FirstOrDefault(item => item.Id != scene.Id)?.Id ?? scene.Id }); RenderScene(scene); };
+        var addChoice = new Button { Content = "+ 新增选项", HorizontalAlignment = HorizontalAlignment.Left, Foreground = (System.Windows.Media.Brush)FindResource("AccentBrush") };
+        addChoice.Click += (_, _) => { scene.Choices.Add(new ChoiceOption { Id = $"choice-{scene.Choices.Count + 1}", Text = "新选项", Next = _project?.Scenes.FirstOrDefault(item => item.Id != scene.Id)?.Id ?? scene.Id }); RenderScene(scene); };
         EditorPanel.Children.Add(addChoice);
         RenderPreview(scene);
     }
